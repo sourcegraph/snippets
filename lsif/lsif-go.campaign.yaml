@@ -1,0 +1,77 @@
+name: LSIF for Go
+description: Add GitHub action to generate LSIF for Go repositories on a Sourcegraph instance
+
+on:
+  - repositoriesMatchingQuery: "file:go.mod$ fork:yes"
+
+steps:
+  - container: ubuntu
+    run: |
+      #!/usr/bin/env bash
+
+      mkdir -p .github/workflows
+
+      cat <<EOF >.github/workflows/lsif.yml
+      name: LSIF
+      on:
+          - push
+      jobs:
+      EOF
+
+      readarray -d '' roots < <(find . -type f -name go.mod -print0)
+
+      for file in "${roots[@]}"; do
+        root=$(dirname "${file}")
+        if [[ "${root}" == '.'* ]]; then
+          root="${root:1}"
+        fi
+        if [[ "${root}" == '/'* ]]; then
+          root="${root:1}"
+        fi
+
+        echo "${root}"
+
+        if [[ -z "${root}" ]]; then
+          cat <<EOF >>.github/workflows/lsif.yml
+          lsif-go:
+              runs-on: ubuntu-latest
+              container: sourcegraph/lsif-go
+              steps:
+                  - uses: actions/checkout@v1
+                  - name: Generate LSIF data
+                    run: lsif-go
+                  - name: Upload LSIF data
+                    run: src lsif upload
+                    env:
+                      SRC_ACCESS_TOKEN: ${{ secrets.srcAccessToken }}
+                      SRC_ENDPOINT: ${{ secrets.srcEndpoint }}
+
+      EOF
+        else
+          cat <<EOF >>.github/workflows/lsif.yml
+          lsif-go-${root//\//-}:
+              runs-on: ubuntu-latest
+              container: sourcegraph/lsif-go
+              steps:
+                  - uses: actions/checkout@v1
+                  - name: Generate LSIF data
+                    working-directory: ${root}
+                    run: lsif-go
+                  - name: Upload LSIF data
+                    working-directory: ${root}
+                    run: src lsif upload
+                    env:
+                      SRC_ACCESS_TOKEN: ${{ secrets.srcAccessToken }}
+                      SRC_ENDPOINT: ${{ secrets.srcEndpoint }}
+
+      EOF
+        fi
+      done
+
+changesetTemplate:
+  title: Add GitHub action to generate LSIF for Go repositories
+  body: Adds a GitHub action that generates LSIF for all Go repositories (selected by the query `file:go.mod$ fork:yes` on this Sourcegraph instance.
+  branch: sourcegraph-lsif-go
+  commit:
+    message: Add a GitHub action to upload LSIF indexes to Sourcegraph
+  published: false
