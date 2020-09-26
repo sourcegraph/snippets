@@ -43,8 +43,8 @@ steps:
                   - name: Upload LSIF data
                     run: src lsif upload
                     env:
-                      SRC_ACCESS_TOKEN: ${{ secrets.srcAccessToken }}
-                      SRC_ENDPOINT: ${{ secrets.srcEndpoint }}
+                      SRC_ACCESS_TOKEN: \${{ secrets.srcAccessToken }}
+                      SRC_ENDPOINT: \${{ secrets.srcEndpoint }}
 
       EOF
         else
@@ -61,8 +61,8 @@ steps:
                     working-directory: ${root}
                     run: src lsif upload
                     env:
-                      SRC_ACCESS_TOKEN: ${{ secrets.srcAccessToken }}
-                      SRC_ENDPOINT: ${{ secrets.srcEndpoint }}
+                      SRC_ACCESS_TOKEN: \${{ secrets.srcAccessToken }}
+                      SRC_ENDPOINT: \${{ secrets.srcEndpoint }}
 
       EOF
         fi
