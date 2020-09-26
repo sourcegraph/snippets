@@ -1,4 +1,4 @@
-name: LSIF for Go
+name: lsif-for-go
 description: Add GitHub action to generate LSIF for Go repositories on a Sourcegraph instance
 
 on:
